@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import {
   Table,
   TableBody,
@@ -151,7 +152,14 @@ export function ProjectsTable({ projects }: ProjectsTableProps) {
         <TableBody>
           {sortedProjects.map((project) => (
             <TableRow key={project.id}>
-              <TableCell className="font-medium">{project.name}</TableCell>
+              <TableCell className="font-medium">
+                <Link
+                  href={`/projects/${project.id}`}
+                  className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                >
+                  {project.name}
+                </Link>
+              </TableCell>
               <TableCell className="max-w-md truncate">
                 {project.description}
               </TableCell>
