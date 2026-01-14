@@ -1,36 +1,98 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 工作台账管理系统
 
-## Getting Started
+基于 Next.js 14 和 shadcn/ui 构建的现代化项目管理系统。
 
-First, run the development server:
+## 快速开始
+
+### 安装依赖
+
+```bash
+npm install
+```
+
+### 开发模式
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+访问 http://localhost:3000
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 构建生产版本
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run build
+npm start
+```
+## Mock 后端架构
 
-## Learn More
+### 数据模型
 
-To learn more about Next.js, take a look at the following resources:
+```
+Project (项目)
+├── id: string
+├── name: string
+├── description: string
+├── status: "待处理" | "进行中" | "已完成"
+├── priority: "高" | "中" | "低"
+├── createdAt: Date
+├── updatedAt: Date
+├── dueDate?: Date
+├── files?: ProjectFile[]
+└── milestones?: Milestone[]
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+ProjectFile (项目文件)
+├── id: string
+├── projectId: string
+├── fileName: string
+├── fileSize: number
+├── fileType: string
+├── uploadedAt: Date
+└── url: string
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Milestone (里程碑)
+├── id: string
+├── projectId: string
+├── title: string
+├── description: string
+├── status: "未开始" | "进行中" | "已完成"
+├── dueDate?: Date
+├── completedDate?: Date
+└── order: number
+```
 
-## Deploy on Vercel
+### API 端点
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```
+GET  /api/projects              # 获取所有项目和统计数据
+POST /api/projects              # 创建新项目
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+GET  /api/projects/[id]/files       # 获取项目文件列表
+POST /api/projects/[id]/files       # 上传项目文件
+
+GET  /api/projects/[id]/milestones  # 获取项目里程碑
+POST /api/projects/[id]/milestones  # 创建里程碑
+
+PATCH /api/milestones/[id]          # 更新里程碑
+DELETE /api/milestones/[id]         # 删除里程碑
+```
+
+### 数据存储
+
+- 所有数据存储在内存中 (`lib/mock-data.ts`)
+- 使用导出的数组模拟数据库表
+- 刷新页面后数据重置为初始状态
+- 生产环境需替换为真实数据库（Prisma + PostgreSQL/MySQL）
+
+
+### 迁移到真实数据库
+
+1. 安装 Prisma: `npm install prisma @prisma/client`
+2. 初始化: `npx prisma init`
+3. 在 `prisma/schema.prisma` 定义数据模型
+4. 运行迁移: `npx prisma migrate dev`
+5. 替换 `lib/mock-data.ts` 中的数据访问逻辑
+
+## 许可证
+
+MIT

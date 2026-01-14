@@ -1,5 +1,6 @@
 "use client";
 
+import * as React from "react";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -35,6 +36,7 @@ import {
   PieChart,
   XAxis,
   YAxis,
+  Cell,
 } from "recharts";
 
 const projectStatusData = [
@@ -83,6 +85,14 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 export default function AnalyticsPage() {
+  const [activeIndex, setActiveIndex] = React.useState<number | undefined>(
+    undefined,
+  );
+
+  const total = React.useMemo(() => {
+    return projectStatusData.reduce((acc, curr) => acc + curr.value, 0);
+  }, []);
+
   return (
     <SidebarInset>
       <header className="flex h-16 shrink-0 items-center gap-2 px-4 justify-between">
@@ -113,20 +123,56 @@ export default function AnalyticsPage() {
               <CardTitle>项目状态分布</CardTitle>
               <CardDescription>各状态项目数量统计</CardDescription>
             </CardHeader>
-            <CardContent>
-              <ChartContainer config={chartConfig} className="h-[300px]">
+            <CardContent className="flex flex-col">
+              <ChartContainer
+                config={chartConfig}
+                className="mx-auto aspect-square max-h-[250px]"
+              >
                 <PieChart>
-                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <ChartTooltip
+                    cursor={false}
+                    content={<ChartTooltipContent hideLabel />}
+                  />
                   <Pie
                     data={projectStatusData}
                     dataKey="value"
                     nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    label
-                  />
+                    innerRadius={60}
+                    strokeWidth={5}
+                    activeIndex={activeIndex}
+                    activeShape={({ outerRadius = 0, ...props }: any) => (
+                      <g>
+                        <Sector {...props} outerRadius={outerRadius + 10} />
+                      </g>
+                    )}
+                    onMouseEnter={(_, index) => setActiveIndex(index)}
+                    onMouseLeave={() => setActiveIndex(undefined)}
+                  >
+                    {projectStatusData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.fill} />
+                    ))}
+                  </Pie>
                 </PieChart>
               </ChartContainer>
+              <div className="mt-4 flex flex-col gap-2">
+                {projectStatusData.map((item, index) => (
+                  <div
+                    key={item.name}
+                    className="flex items-center justify-between text-sm"
+                  >
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="h-3 w-3 rounded-sm"
+                        style={{ backgroundColor: item.fill }}
+                      />
+                      <span>{item.name}</span>
+                    </div>
+                    <span className="font-medium">
+                      {item.value} ({((item.value / total) * 100).toFixed(0)}%)
+                    </span>
+                  </div>
+                ))}
+              </div>
             </CardContent>
           </Card>
 
@@ -203,4 +249,72 @@ export default function AnalyticsPage() {
       </div>
     </SidebarInset>
   );
+}
+
+// Sector component for active pie segment
+function Sector(props: any) {
+  const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } =
+    props;
+  return (
+    <g>
+      <path
+        d={describeArc(cx, cy, innerRadius, outerRadius, startAngle, endAngle)}
+        fill={fill}
+      />
+    </g>
+  );
+}
+
+function describeArc(
+  cx: number,
+  cy: number,
+  innerRadius: number,
+  outerRadius: number,
+  startAngle: number,
+  endAngle: number,
+) {
+  const start = polarToCartesian(cx, cy, outerRadius, endAngle);
+  const end = polarToCartesian(cx, cy, outerRadius, startAngle);
+  const innerStart = polarToCartesian(cx, cy, innerRadius, endAngle);
+  const innerEnd = polarToCartesian(cx, cy, innerRadius, startAngle);
+  const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
+
+  return [
+    "M",
+    start.x,
+    start.y,
+    "A",
+    outerRadius,
+    outerRadius,
+    0,
+    largeArcFlag,
+    0,
+    end.x,
+    end.y,
+    "L",
+    innerEnd.x,
+    innerEnd.y,
+    "A",
+    innerRadius,
+    innerRadius,
+    0,
+    largeArcFlag,
+    1,
+    innerStart.x,
+    innerStart.y,
+    "Z",
+  ].join(" ");
+}
+
+function polarToCartesian(
+  centerX: number,
+  centerY: number,
+  radius: number,
+  angleInDegrees: number,
+) {
+  const angleInRadians = ((angleInDegrees - 90) * Math.PI) / 180.0;
+  return {
+    x: centerX + radius * Math.cos(angleInRadians),
+    y: centerY + radius * Math.sin(angleInRadians),
+  };
 }

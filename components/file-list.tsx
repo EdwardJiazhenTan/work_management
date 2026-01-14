@@ -3,8 +3,22 @@
 import * as React from "react";
 import { ProjectFile } from "@/lib/types";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { File, Plus, Trash2 } from "lucide-react";
@@ -17,23 +31,37 @@ interface FileListProps {
 
 export function FileList({ projectId, files, onFileAdded }: FileListProps) {
   const [open, setOpen] = React.useState(false);
-  const [fileName, setFileName] = React.useState("");
+  const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!selectedFile) return;
+
     const newFile: ProjectFile = {
       id: Date.now().toString(),
       projectId,
-      fileName,
-      fileSize: Math.floor(Math.random() * 5000000) + 100000,
-      fileType: fileName.split(".").pop() || "file",
+      fileName: selectedFile.name,
+      fileSize: selectedFile.size,
+      fileType:
+        selectedFile.type || selectedFile.name.split(".").pop() || "file",
       uploadedAt: new Date(),
-      url: `/uploads/${fileName}`,
+      url: `/uploads/${selectedFile.name}`,
     };
 
     onFileAdded(newFile);
-    setFileName("");
+    setSelectedFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
     setOpen(false);
   };
 
@@ -61,25 +89,31 @@ export function FileList({ projectId, files, onFileAdded }: FileListProps) {
             <DialogContent>
               <form onSubmit={handleSubmit}>
                 <DialogHeader>
-                  <DialogTitle>添加文件</DialogTitle>
-                  <DialogDescription>
-                    上传项目相关文件（模拟上传）
-                  </DialogDescription>
+                  <DialogTitle>上传文件</DialogTitle>
+                  <DialogDescription>选择要上传的项目文件</DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                   <div className="grid gap-2">
-                    <Label htmlFor="fileName">文件名</Label>
+                    <Label htmlFor="fileUpload">选择文件</Label>
                     <Input
-                      id="fileName"
-                      placeholder="example.pdf"
-                      value={fileName}
-                      onChange={(e) => setFileName(e.target.value)}
+                      id="fileUpload"
+                      ref={fileInputRef}
+                      type="file"
+                      onChange={handleFileSelect}
                       required
                     />
+                    {selectedFile && (
+                      <p className="text-sm text-muted-foreground">
+                        已选择: {selectedFile.name} (
+                        {formatFileSize(selectedFile.size)})
+                      </p>
+                    )}
                   </div>
                 </div>
                 <DialogFooter>
-                  <Button type="submit">添加</Button>
+                  <Button type="submit" disabled={!selectedFile}>
+                    上传
+                  </Button>
                 </DialogFooter>
               </form>
             </DialogContent>
@@ -101,7 +135,8 @@ export function FileList({ projectId, files, onFileAdded }: FileListProps) {
                   <div>
                     <p className="text-sm font-medium">{file.fileName}</p>
                     <p className="text-xs text-muted-foreground">
-                      {formatFileSize(file.fileSize)} • {new Date(file.uploadedAt).toLocaleDateString("zh-CN")}
+                      {formatFileSize(file.fileSize)} •{" "}
+                      {new Date(file.uploadedAt).toLocaleDateString("zh-CN")}
                     </p>
                   </div>
                 </div>
