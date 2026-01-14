@@ -36,36 +36,53 @@ export function ProjectsTable({ projects }: ProjectsTableProps) {
 
   const sortedProjects = React.useMemo(() => {
     return [...projects].sort((a, b) => {
-      let aValue: any = a[sortField];
-      let bValue: any = b[sortField];
+      const aValue = a[sortField];
+      const bValue = b[sortField];
 
+      // Handle date fields
       if (sortField === "createdAt" || sortField === "dueDate") {
-        aValue = aValue ? new Date(aValue).getTime() : 0;
-        bValue = bValue ? new Date(bValue).getTime() : 0;
+        const aTime = aValue ? new Date(aValue).getTime() : 0;
+        const bTime = bValue ? new Date(bValue).getTime() : 0;
+        if (aTime < bTime) return sortOrder === "asc" ? -1 : 1;
+        if (aTime > bTime) return sortOrder === "asc" ? 1 : -1;
+        return 0;
       }
 
-      if (aValue < bValue) return sortOrder === "asc" ? -1 : 1;
-      if (aValue > bValue) return sortOrder === "asc" ? 1 : -1;
+      // Handle string fields
+      if (typeof aValue === "string" && typeof bValue === "string") {
+        const comparison = aValue.localeCompare(bValue);
+        return sortOrder === "asc" ? comparison : -comparison;
+      }
+
       return 0;
     });
   }, [projects, sortField, sortOrder]);
 
   const getStatusBadge = (status: Project["status"]) => {
-    const variants: Record<Project["status"], "default" | "secondary" | "outline"> = {
-      待处理: "secondary",
-      进行中: "default",
-      已完成: "outline",
+    const styles: Record<Project["status"], string> = {
+      待处理:
+        "bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300",
+      进行中: "bg-blue-400 text-white dark:bg-blue-500",
+      已完成: "bg-slate-600 text-white dark:bg-slate-500",
     };
-    return <Badge variant={variants[status]}>{status}</Badge>;
+    return (
+      <Badge variant="secondary" className={styles[status]}>
+        {status}
+      </Badge>
+    );
   };
 
   const getPriorityBadge = (priority: Project["priority"]) => {
-    const variants: Record<Project["priority"], "default" | "secondary" | "destructive"> = {
-      高: "destructive",
-      中: "default",
-      低: "secondary",
+    const styles: Record<Project["priority"], string> = {
+      高: "bg-slate-700 text-white dark:bg-slate-600",
+      中: "bg-blue-500 text-white dark:bg-blue-600",
+      低: "bg-slate-300 text-slate-700 dark:bg-slate-700 dark:text-slate-300",
     };
-    return <Badge variant={variants[priority]}>{priority}</Badge>;
+    return (
+      <Badge variant="secondary" className={styles[priority]}>
+        {priority}
+      </Badge>
+    );
   };
 
   const formatDate = (date?: Date) => {
