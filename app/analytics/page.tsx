@@ -11,20 +11,42 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, Pie, PieChart, XAxis, YAxis } from "recharts";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  ChartConfig,
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Legend,
+  Line,
+  LineChart,
+  Pie,
+  PieChart,
+  XAxis,
+  YAxis,
+} from "recharts";
 
 const projectStatusData = [
-  { name: "待处理", value: 3, fill: "hsl(var(--chart-1))" },
-  { name: "进行中", value: 3, fill: "hsl(var(--chart-2))" },
-  { name: "已完成", value: 2, fill: "hsl(var(--chart-3))" },
+  { name: "待处理", value: 3, fill: "#94a3b8" }, // slate-400
+  { name: "进行中", value: 3, fill: "#60a5fa" }, // blue-400
+  { name: "已完成", value: 2, fill: "#475569" }, // slate-600
 ];
 
 const projectPriorityData = [
-  { name: "高", value: 4, fill: "hsl(var(--chart-1))" },
-  { name: "中", value: 3, fill: "hsl(var(--chart-2))" },
-  { name: "低", value: 1, fill: "hsl(var(--chart-3))" },
+  { name: "高", value: 4, fill: "#64748b" }, // slate-500
+  { name: "中", value: 3, fill: "#3b82f6" }, // blue-500
+  { name: "低", value: 1, fill: "#cbd5e1" }, // slate-300
 ];
 
 const monthlyData = [
@@ -48,15 +70,15 @@ const weeklyProgressData = [
 const chartConfig = {
   新增: {
     label: "新增项目",
-    color: "hsl(var(--chart-1))",
+    color: "#60a5fa", // blue-400
   },
   完成: {
     label: "完成项目",
-    color: "hsl(var(--chart-2))",
+    color: "#64748b", // slate-500
   },
   进度: {
     label: "完成进度",
-    color: "hsl(var(--chart-3))",
+    color: "#3b82f6", // blue-500
   },
 } satisfies ChartConfig;
 
@@ -120,7 +142,7 @@ export default function AnalyticsPage() {
                   <XAxis dataKey="name" />
                   <YAxis />
                   <ChartTooltip content={<ChartTooltipContent />} />
-                  <Bar dataKey="value" fill="hsl(var(--chart-1))" />
+                  <Bar dataKey="value" fill="#3b82f6" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ChartContainer>
             </CardContent>
@@ -139,8 +161,16 @@ export default function AnalyticsPage() {
                   <YAxis />
                   <ChartTooltip content={<ChartTooltipContent />} />
                   <Legend />
-                  <Bar dataKey="新增" fill="var(--color-新增)" />
-                  <Bar dataKey="完成" fill="var(--color-完成)" />
+                  <Bar
+                    dataKey="新增"
+                    fill="var(--color-新增)"
+                    radius={[4, 4, 0, 0]}
+                  />
+                  <Bar
+                    dataKey="完成"
+                    fill="var(--color-完成)"
+                    radius={[4, 4, 0, 0]}
+                  />
                 </BarChart>
               </ChartContainer>
             </CardContent>
