@@ -29,8 +29,8 @@ const data = {
           url: "/analytics",
         },
         {
-          title: "流量管理",
-          url: "/traffic",
+          title: "项目管理",
+          url: "/projects",
         },
       ],
     },

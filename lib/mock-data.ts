@@ -1,0 +1,93 @@
+import { Project, ProjectStats } from "./types";
+
+export const mockProjects: Project[] = [
+  {
+    id: "1",
+    name: "网站重构项目",
+    description: "对公司官网进行全面重构，采用最新技术栈",
+    status: "进行中",
+    priority: "高",
+    createdAt: new Date("2024-01-15"),
+    updatedAt: new Date("2024-01-20"),
+    dueDate: new Date("2024-03-01"),
+  },
+  {
+    id: "2",
+    name: "移动应用开发",
+    description: "开发iOS和Android移动应用",
+    status: "待处理",
+    priority: "中",
+    createdAt: new Date("2024-01-18"),
+    updatedAt: new Date("2024-01-18"),
+    dueDate: new Date("2024-04-15"),
+  },
+  {
+    id: "3",
+    name: "数据库优化",
+    description: "优化数据库查询性能，减少响应时间",
+    status: "已完成",
+    priority: "高",
+    createdAt: new Date("2024-01-10"),
+    updatedAt: new Date("2024-01-25"),
+    dueDate: new Date("2024-01-25"),
+  },
+  {
+    id: "4",
+    name: "API文档编写",
+    description: "编写完整的API接口文档",
+    status: "进行中",
+    priority: "中",
+    createdAt: new Date("2024-01-12"),
+    updatedAt: new Date("2024-01-22"),
+    dueDate: new Date("2024-02-10"),
+  },
+  {
+    id: "5",
+    name: "用户反馈系统",
+    description: "开发用户反馈收集和处理系统",
+    status: "待处理",
+    priority: "低",
+    createdAt: new Date("2024-01-20"),
+    updatedAt: new Date("2024-01-20"),
+    dueDate: new Date("2024-05-01"),
+  },
+  {
+    id: "6",
+    name: "安全审计",
+    description: "进行全面的安全漏洞审计",
+    status: "已完成",
+    priority: "高",
+    createdAt: new Date("2024-01-05"),
+    updatedAt: new Date("2024-01-15"),
+    dueDate: new Date("2024-01-15"),
+  },
+  {
+    id: "7",
+    name: "性能监控系统",
+    description: "搭建应用性能监控和告警系统",
+    status: "进行中",
+    priority: "高",
+    createdAt: new Date("2024-01-08"),
+    updatedAt: new Date("2024-01-23"),
+    dueDate: new Date("2024-02-28"),
+  },
+  {
+    id: "8",
+    name: "UI/UX改进",
+    description: "优化用户界面和用户体验",
+    status: "待处理",
+    priority: "中",
+    createdAt: new Date("2024-01-22"),
+    updatedAt: new Date("2024-01-22"),
+    dueDate: new Date("2024-03-15"),
+  },
+];
+
+export function getProjectStats(projects: Project[]): ProjectStats {
+  return {
+    total: projects.length,
+    completed: projects.filter((p) => p.status === "已完成").length,
+    inProgress: projects.filter((p) => p.status === "进行中").length,
+    pending: projects.filter((p) => p.status === "待处理").length,
+  };
+}
