@@ -1,6 +1,12 @@
 import * as React from "react";
 import Link from "next/link";
-import { BarChart3, FolderOpen, TrendingUp } from "lucide-react";
+import {
+  BarChart3,
+  FileText,
+  FolderOpen,
+  TrendingUp,
+  Upload,
+} from "lucide-react";
 
 import {
   Sidebar,
@@ -39,20 +45,16 @@ const data = {
       icon: FolderOpen,
       items: [
         {
-          title: "我的文档",
-          url: "/documents",
+          title: "项目文件",
+          url: "/files",
         },
         {
-          title: "共享文件",
-          url: "/shared",
-        },
-        {
-          title: "文件夹",
-          url: "/folders",
+          title: "文件上传",
+          url: "/files/upload",
         },
         {
           title: "最近文件",
-          url: "/recent",
+          url: "/files/recent",
         },
       ],
     },
