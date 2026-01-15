@@ -49,6 +49,20 @@ export function ProjectsTable({ projects }: ProjectsTableProps) {
         return 0;
       }
 
+      // Handle priority field with custom order
+      if (sortField === "priority") {
+        const priorityOrder: Record<Project["priority"], number> = {
+          高: 1,
+          中: 2,
+          低: 3,
+        };
+        const aOrder = priorityOrder[aValue as Project["priority"]];
+        const bOrder = priorityOrder[bValue as Project["priority"]];
+        if (aOrder < bOrder) return sortOrder === "asc" ? -1 : 1;
+        if (aOrder > bOrder) return sortOrder === "asc" ? 1 : -1;
+        return 0;
+      }
+
       // Handle string fields
       if (typeof aValue === "string" && typeof bValue === "string") {
         const comparison = aValue.localeCompare(bValue);
