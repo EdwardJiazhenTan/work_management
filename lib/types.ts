@@ -1,6 +1,15 @@
 export type ProjectStatus = "待处理" | "进行中" | "已完成";
 export type ProjectPriority = "高" | "中" | "低";
 export type MilestoneStatus = "未开始" | "进行中" | "已完成";
+export type ProjectCategory =
+  | "经营管理"
+  | "资产管理"
+  | "议案管理"
+  | "工商管理"
+  | "非工程类采购管理"
+  | "保险采购管理"
+  | "法务管理"
+  | "其他";
 
 export interface ProjectFile {
   id: string;
@@ -29,6 +38,7 @@ export interface Project {
   description: string;
   status: ProjectStatus;
   priority: ProjectPriority;
+  category: ProjectCategory;
   createdAt: Date;
   updatedAt: Date;
   dueDate?: Date;

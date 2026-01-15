@@ -1,11 +1,10 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { zhCN } from "date-fns/locale";
-import { CalendarIcon, Plus } from "lucide-react";
+import { CalendarIcon, Plus, Trash2 } from "lucide-react";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -27,6 +26,16 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -46,7 +55,12 @@ import {
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { mockProjects } from "@/lib/mock-data";
-import { Project, ProjectPriority, ProjectStatus } from "@/lib/types";
+import {
+  Project,
+  ProjectPriority,
+  ProjectStatus,
+  ProjectCategory,
+} from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 export default function ProjectsPage() {
@@ -54,11 +68,16 @@ export default function ProjectsPage() {
   const [open, setOpen] = React.useState(false);
   const [projects, setProjects] = React.useState<Project[]>(mockProjects);
   const [date, setDate] = React.useState<Date>();
+  const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
+  const [projectToDelete, setProjectToDelete] = React.useState<string | null>(
+    null,
+  );
   const [formData, setFormData] = React.useState({
     name: "",
     description: "",
     status: "待处理" as ProjectStatus,
     priority: "中" as ProjectPriority,
+    category: "其他" as ProjectCategory,
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -70,6 +89,7 @@ export default function ProjectsPage() {
       description: formData.description,
       status: formData.status,
       priority: formData.priority,
+      category: formData.category,
       createdAt: new Date(),
       updatedAt: new Date(),
       dueDate: date,
@@ -85,8 +105,23 @@ export default function ProjectsPage() {
       description: "",
       status: "待处理",
       priority: "中",
+      category: "其他",
     });
     setDate(undefined);
+  };
+
+  const handleDeleteClick = (projectId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setProjectToDelete(projectId);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (projectToDelete) {
+      setProjects(projects.filter((p) => p.id !== projectToDelete));
+      setProjectToDelete(null);
+      setDeleteDialogOpen(false);
+    }
   };
 
   return (
@@ -127,7 +162,7 @@ export default function ProjectsPage() {
                 创建项目
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[525px]">
+            <DialogContent className="sm:max-w-131.25">
               <form onSubmit={handleSubmit}>
                 <DialogHeader>
                   <DialogTitle>创建新项目</DialogTitle>
@@ -160,6 +195,36 @@ export default function ProjectsPage() {
                       }
                       required
                     />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="category">项目类别</Label>
+                    <Select
+                      value={formData.category}
+                      onValueChange={(value) =>
+                        setFormData({
+                          ...formData,
+                          category: value as ProjectCategory,
+                        })
+                      }
+                    >
+                      <SelectTrigger id="category">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="经营管理">经营管理</SelectItem>
+                        <SelectItem value="资产管理">资产管理</SelectItem>
+                        <SelectItem value="议案管理">议案管理</SelectItem>
+                        <SelectItem value="工商管理">工商管理</SelectItem>
+                        <SelectItem value="非工程类采购管理">
+                          非工程类采购管理
+                        </SelectItem>
+                        <SelectItem value="保险采购管理">
+                          保险采购管理
+                        </SelectItem>
+                        <SelectItem value="法务管理">法务管理</SelectItem>
+                        <SelectItem value="其他">其他</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="grid gap-2">
@@ -255,6 +320,9 @@ export default function ProjectsPage() {
                     <Badge variant="outline" className="text-xs">
                       {project.status}
                     </Badge>
+                    <Badge variant="secondary" className="text-xs">
+                      {project.category}
+                    </Badge>
                   </div>
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
                     <span>优先级: {project.priority}</span>
@@ -264,12 +332,37 @@ export default function ProjectsPage() {
                         {new Date(project.dueDate).toLocaleDateString("zh-CN")}
                       </span>
                     )}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                      onClick={(e) => handleDeleteClick(project.id, e)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
                 </div>
               </CardHeader>
             </Card>
           ))}
         </div>
+
+        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>确认删除</AlertDialogTitle>
+              <AlertDialogDescription>
+                确定要删除此项目吗？此操作无法撤销。
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>取消</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDeleteConfirm}>
+                删除
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </SidebarInset>
   );

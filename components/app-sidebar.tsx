@@ -3,13 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  BarChart3,
-  FileText,
-  FolderOpen,
-  TrendingUp,
-  Upload,
-} from "lucide-react";
+import { BarChart3, FolderOpen, TrendingUp } from "lucide-react";
 
 import {
   Sidebar,

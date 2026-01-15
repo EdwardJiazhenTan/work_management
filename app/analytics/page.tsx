@@ -151,7 +151,7 @@ export default function AnalyticsPage() {
             <CardContent className="flex flex-col">
               <ChartContainer
                 config={chartConfig}
-                className="mx-auto aspect-square max-h-[250px]"
+                className="mx-auto aspect-square max-h-62.5"
               >
                 <PieChart>
                   <ChartTooltip
@@ -175,7 +175,7 @@ export default function AnalyticsPage() {
                 </PieChart>
               </ChartContainer>
               <div className="mt-4 flex flex-col gap-2">
-                {projectStatusData.map((item, index) => (
+                {projectStatusData.map((item) => (
                   <div
                     key={item.name}
                     className="flex items-center justify-between text-sm"

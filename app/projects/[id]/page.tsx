@@ -15,7 +15,13 @@ import { Separator } from "@/components/ui/separator";
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft } from "lucide-react";
 import { getProjectById } from "@/lib/mock-data";
@@ -32,7 +38,7 @@ export default function ProjectDetailPage({
   const project = getProjectById(id);
   const [files, setFiles] = React.useState<ProjectFile[]>(project?.files || []);
   const [milestones, setMilestones] = React.useState<Milestone[]>(
-    project?.milestones || []
+    project?.milestones || [],
   );
 
   if (!project) {
@@ -47,7 +53,8 @@ export default function ProjectDetailPage({
 
   const getStatusBadge = (status: typeof project.status) => {
     const styles = {
-      待处理: "bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300",
+      待处理:
+        "bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300",
       进行中: "bg-blue-400 text-white dark:bg-blue-500",
       已完成: "bg-slate-600 text-white dark:bg-slate-500",
     };
@@ -157,11 +164,16 @@ export default function ProjectDetailPage({
           <MilestoneList
             projectId={project.id}
             milestones={milestones}
-            onMilestoneAdded={(milestone) => setMilestones([...milestones, milestone])}
+            onMilestoneAdded={(milestone) =>
+              setMilestones([...milestones, milestone])
+            }
             onMilestoneUpdated={(milestone) => {
               setMilestones(
-                milestones.map((m) => (m.id === milestone.id ? milestone : m))
+                milestones.map((m) => (m.id === milestone.id ? milestone : m)),
               );
+            }}
+            onMilestoneDeleted={(milestoneId) => {
+              setMilestones(milestones.filter((m) => m.id !== milestoneId));
             }}
           />
           <FileList
