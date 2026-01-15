@@ -84,19 +84,17 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-interface ActiveShapeProps {
-  cx: number;
-  cy: number;
-  innerRadius: number;
-  outerRadius: number;
-  startAngle: number;
-  endAngle: number;
-  fill: string;
-}
-
-const renderActiveShape = (props: ActiveShapeProps) => {
+const renderActiveShape = (props: unknown) => {
   const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } =
-    props;
+    props as {
+      cx: number;
+      cy: number;
+      innerRadius: number;
+      outerRadius: number;
+      startAngle: number;
+      endAngle: number;
+      fill: string;
+    };
 
   return (
     <g>
