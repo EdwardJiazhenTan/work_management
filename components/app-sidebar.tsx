@@ -1,5 +1,8 @@
+"use client";
+
 import * as React from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   BarChart3,
   FileText,
@@ -28,7 +31,6 @@ const data = {
         {
           title: "统计看板",
           url: "/",
-          isActive: true,
         },
         {
           title: "数据分析",
@@ -45,16 +47,12 @@ const data = {
       icon: FolderOpen,
       items: [
         {
-          title: "项目文件",
+          title: "最近文件",
           url: "/files",
         },
         {
           title: "文件上传",
           url: "/files/upload",
-        },
-        {
-          title: "最近文件",
-          url: "/files/recent",
         },
       ],
     },
@@ -62,6 +60,8 @@ const data = {
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const pathname = usePathname();
+
   return (
     <Sidebar variant="floating" collapsible="offcanvas" {...props}>
       <SidebarHeader>
@@ -86,15 +86,21 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarGroup key={section.title}>
             <SidebarGroupLabel>{section.title}</SidebarGroupLabel>
             <SidebarMenu>
-              {section.items.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={item.isActive}>
-                    <Link href={item.url}>
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              {section.items.map((item) => {
+                const isActive =
+                  pathname === item.url ||
+                  (item.url !== "/" && pathname.startsWith(item.url));
+
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild isActive={isActive}>
+                      <Link href={item.url}>
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroup>
         ))}

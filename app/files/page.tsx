@@ -13,12 +13,18 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { mockFiles, mockProjects } from "@/lib/mock-data";
-import { File, ExternalLink } from "lucide-react";
+import { File, ExternalLink, Clock } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
-export default function FilesPage() {
+export default function RecentFilesPage() {
   const formatFileSize = (bytes: number) => {
     if (bytes < 1024) return bytes + " B";
     if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
@@ -27,6 +33,24 @@ export default function FilesPage() {
 
   const getProjectName = (projectId: string) => {
     return mockProjects.find((p) => p.id === projectId)?.name || "未知项目";
+  };
+
+  const recentFiles = [...mockFiles]
+    .sort(
+      (a, b) =>
+        new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime(),
+    )
+    .slice(0, 10);
+
+  const getTimeAgo = (date: Date) => {
+    const now = new Date();
+    const diffMs = now.getTime() - new Date(date).getTime();
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) return "今天";
+    if (diffDays === 1) return "昨天";
+    if (diffDays < 7) return `${diffDays} 天前`;
+    return new Date(date).toLocaleDateString("zh-CN");
   };
 
   return (
@@ -45,7 +69,7 @@ export default function FilesPage() {
               </BreadcrumbItem>
               <BreadcrumbSeparator className="hidden md:block" />
               <BreadcrumbItem>
-                <BreadcrumbPage>项目文件</BreadcrumbPage>
+                <BreadcrumbPage>最近文件</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
@@ -54,7 +78,10 @@ export default function FilesPage() {
       </header>
       <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">所有项目文件</h2>
+          <div className="flex items-center gap-2">
+            <Clock className="h-5 w-5 text-muted-foreground" />
+            <h2 className="text-lg font-semibold">最近上传的文件</h2>
+          </div>
           <Button asChild>
             <Link href="/files/upload">上传文件</Link>
           </Button>
@@ -62,15 +89,15 @@ export default function FilesPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>文件列表</CardTitle>
-            <CardDescription>查看所有项目关联的文件</CardDescription>
+            <CardTitle>最近文件</CardTitle>
+            <CardDescription>按上传时间排序的文件列表</CardDescription>
           </CardHeader>
           <CardContent>
-            {mockFiles.length === 0 ? (
+            {recentFiles.length === 0 ? (
               <p className="text-sm text-muted-foreground">暂无文件</p>
             ) : (
               <div className="space-y-2">
-                {mockFiles.map((file) => (
+                {recentFiles.map((file) => (
                   <div
                     key={file.id}
                     className="flex items-center justify-between rounded-lg border p-4"
@@ -80,17 +107,17 @@ export default function FilesPage() {
                       <div>
                         <p className="text-sm font-medium">{file.fileName}</p>
                         <p className="text-xs text-muted-foreground">
-                          {getProjectName(file.projectId)} • {formatFileSize(file.fileSize)} • {new Date(file.uploadedAt).toLocaleDateString("zh-CN")}
+                          {getProjectName(file.projectId)} •{" "}
+                          {formatFileSize(file.fileSize)} •{" "}
+                          {getTimeAgo(file.uploadedAt)}
                         </p>
                       </div>
                     </div>
-                    <div className="flex gap-2">
-                      <Button variant="ghost" size="sm" asChild>
-                        <Link href={`/projects/${file.projectId}`}>
-                          <ExternalLink className="h-4 w-4" />
-                        </Link>
-                      </Button>
-                    </div>
+                    <Button variant="ghost" size="sm" asChild>
+                      <Link href={`/projects/${file.projectId}`}>
+                        <ExternalLink className="h-4 w-4" />
+                      </Link>
+                    </Button>
                   </div>
                 ))}
               </div>

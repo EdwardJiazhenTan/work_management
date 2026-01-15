@@ -1,6 +1,11 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { format } from "date-fns";
+import { zhCN } from "date-fns/locale";
+import { CalendarIcon, Plus } from "lucide-react";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -32,20 +37,28 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus } from "lucide-react";
-import { ProjectsTable } from "@/components/projects-table";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { mockProjects } from "@/lib/mock-data";
 import { Project, ProjectPriority, ProjectStatus } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 export default function ProjectsPage() {
+  const router = useRouter();
   const [open, setOpen] = React.useState(false);
   const [projects, setProjects] = React.useState<Project[]>(mockProjects);
+  const [date, setDate] = React.useState<Date>();
   const [formData, setFormData] = React.useState({
     name: "",
     description: "",
     status: "待处理" as ProjectStatus,
     priority: "中" as ProjectPriority,
-    dueDate: "",
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -59,7 +72,9 @@ export default function ProjectsPage() {
       priority: formData.priority,
       createdAt: new Date(),
       updatedAt: new Date(),
-      dueDate: formData.dueDate ? new Date(formData.dueDate) : undefined,
+      dueDate: date,
+      files: [],
+      milestones: [],
     };
 
     setProjects([...projects, newProject]);
@@ -70,8 +85,8 @@ export default function ProjectsPage() {
       description: "",
       status: "待处理",
       priority: "中",
-      dueDate: "",
     });
+    setDate(undefined);
   };
 
   return (
@@ -99,7 +114,12 @@ export default function ProjectsPage() {
       </header>
       <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">项目管理</h2>
+          <div>
+            <h2 className="text-2xl font-semibold">项目管理</h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              创建项目、设置里程碑、管理项目文件
+            </p>
+          </div>
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               <Button>
@@ -133,7 +153,10 @@ export default function ProjectsPage() {
                       id="description"
                       value={formData.description}
                       onChange={(e) =>
-                        setFormData({ ...formData, description: e.target.value })
+                        setFormData({
+                          ...formData,
+                          description: e.target.value,
+                        })
                       }
                       required
                     />
@@ -144,7 +167,10 @@ export default function ProjectsPage() {
                       <Select
                         value={formData.status}
                         onValueChange={(value) =>
-                          setFormData({ ...formData, status: value as ProjectStatus })
+                          setFormData({
+                            ...formData,
+                            status: value as ProjectStatus,
+                          })
                         }
                       >
                         <SelectTrigger id="status">
@@ -162,7 +188,10 @@ export default function ProjectsPage() {
                       <Select
                         value={formData.priority}
                         onValueChange={(value) =>
-                          setFormData({ ...formData, priority: value as ProjectPriority })
+                          setFormData({
+                            ...formData,
+                            priority: value as ProjectPriority,
+                          })
                         }
                       >
                         <SelectTrigger id="priority">
@@ -177,15 +206,31 @@ export default function ProjectsPage() {
                     </div>
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="dueDate">截止日期</Label>
-                    <Input
-                      id="dueDate"
-                      type="date"
-                      value={formData.dueDate}
-                      onChange={(e) =>
-                        setFormData({ ...formData, dueDate: e.target.value })
-                      }
-                    />
+                    <Label>截止日期</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "justify-start text-left font-normal",
+                            !date && "text-muted-foreground",
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {date
+                            ? format(date, "PPP", { locale: zhCN })
+                            : "选择日期"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0">
+                        <Calendar
+                          mode="single"
+                          selected={date}
+                          onSelect={setDate}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
                   </div>
                 </div>
                 <DialogFooter>
@@ -195,7 +240,36 @@ export default function ProjectsPage() {
             </DialogContent>
           </Dialog>
         </div>
-        <ProjectsTable projects={projects} />
+
+        <div className="flex flex-col gap-4">
+          {projects.map((project) => (
+            <Card
+              key={project.id}
+              className="cursor-pointer hover:bg-accent transition-colors"
+              onClick={() => router.push(`/projects/${project.id}`)}
+            >
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <CardTitle className="text-base">{project.name}</CardTitle>
+                    <Badge variant="outline" className="text-xs">
+                      {project.status}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                    <span>优先级: {project.priority}</span>
+                    {project.dueDate && (
+                      <span>
+                        截止:{" "}
+                        {new Date(project.dueDate).toLocaleDateString("zh-CN")}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </CardHeader>
+            </Card>
+          ))}
+        </div>
       </div>
     </SidebarInset>
   );

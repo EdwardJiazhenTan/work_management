@@ -84,7 +84,17 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-const renderActiveShape = (props: any) => {
+interface ActiveShapeProps {
+  cx: number;
+  cy: number;
+  innerRadius: number;
+  outerRadius: number;
+  startAngle: number;
+  endAngle: number;
+  fill: string;
+}
+
+const renderActiveShape = (props: ActiveShapeProps) => {
   const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } =
     props;
 
@@ -158,26 +168,12 @@ export default function AnalyticsPage() {
                     nameKey="name"
                     innerRadius={60}
                     outerRadius={80}
-                    fill="#8884d8"
                     paddingAngle={5}
                     activeIndex={activeIndex}
                     activeShape={renderActiveShape}
                     onMouseEnter={(_, index) => setActiveIndex(index)}
                     onMouseLeave={() => setActiveIndex(0)}
-                  >
-                    {projectStatusData.map((entry, index) => (
-                      <Sector
-                        key={`sector-${index}`}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={60}
-                        outerRadius={80}
-                        startAngle={0}
-                        endAngle={0}
-                        fill={entry.fill}
-                      />
-                    ))}
-                  </Pie>
+                  />
                 </PieChart>
               </ChartContainer>
               <div className="mt-4 flex flex-col gap-2">
