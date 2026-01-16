@@ -17,14 +17,12 @@ import {
 import { ArrowUpDown, ChevronDown } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -34,7 +32,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Project } from "@/lib/types";
+import { Project, ProjectCategory } from "@/lib/types";
 
 interface ProjectsTableProps {
   projects: Project[];
@@ -49,7 +47,18 @@ export function ProjectsTable({ projects }: ProjectsTableProps) {
   );
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
-  const [rowSelection, setRowSelection] = React.useState({});
+
+  // Get unique categories from projects
+  const categories: ProjectCategory[] = [
+    "经营管理",
+    "资产管理",
+    "议案管理",
+    "工商管理",
+    "非工程类采购管理",
+    "保险采购管理",
+    "法务管理",
+    "其他",
+  ];
 
   const getStatusBadge = (status: Project["status"]) => {
     const styles: Record<Project["status"], string> = {
@@ -80,14 +89,14 @@ export function ProjectsTable({ projects }: ProjectsTableProps) {
 
   const getCategoryBadge = (category: Project["category"]) => {
     const styles: Record<Project["category"], string> = {
-      经营管理: "bg-purple-500 text-white dark:bg-purple-600",
-      资产管理: "bg-green-500 text-white dark:bg-green-600",
-      议案管理: "bg-orange-500 text-white dark:bg-orange-600",
-      工商管理: "bg-pink-500 text-white dark:bg-pink-600",
-      非工程类采购管理: "bg-indigo-500 text-white dark:bg-indigo-600",
-      保险采购管理: "bg-teal-500 text-white dark:bg-teal-600",
-      法务管理: "bg-red-500 text-white dark:bg-red-600",
-      其他: "bg-gray-500 text-white dark:bg-gray-600",
+      经营管理: "bg-blue-500 text-white dark:bg-blue-600",
+      资产管理: "bg-blue-400 text-white dark:bg-blue-500",
+      议案管理: "bg-blue-600 text-white dark:bg-blue-700",
+      工商管理: "bg-cyan-500 text-white dark:bg-cyan-600",
+      非工程类采购管理: "bg-sky-500 text-white dark:bg-sky-600",
+      保险采购管理: "bg-indigo-500 text-white dark:bg-indigo-600",
+      法务管理: "bg-blue-700 text-white dark:bg-blue-800",
+      其他: "bg-slate-500 text-white dark:bg-slate-600",
     };
     return (
       <Badge variant="secondary" className={styles[category]}>
@@ -102,28 +111,6 @@ export function ProjectsTable({ projects }: ProjectsTableProps) {
   };
 
   const columns: ColumnDef<Project>[] = [
-    {
-      id: "select",
-      header: ({ table }) => (
-        <Checkbox
-          checked={
-            table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && "indeterminate")
-          }
-          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="选择全部"
-        />
-      ),
-      cell: ({ row }) => (
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="选择行"
-        />
-      ),
-      enableSorting: false,
-      enableHiding: false,
-    },
     {
       accessorKey: "name",
       header: ({ column }) => {
@@ -262,28 +249,59 @@ export function ProjectsTable({ projects }: ProjectsTableProps) {
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
-    onRowSelectionChange: setRowSelection,
     state: {
       sorting,
       columnFilters,
       columnVisibility,
-      rowSelection,
     },
   });
+
+  const selectedCategories =
+    (table.getColumn("category")?.getFilterValue() as ProjectCategory[]) ?? [];
+
+  const isCategorySelected = (category: ProjectCategory) =>
+    selectedCategories.includes(category);
+
+  const toggleCategory = (category: ProjectCategory) => {
+    const currentFilters = selectedCategories;
+    const newFilters = isCategorySelected(category)
+      ? currentFilters.filter((c) => c !== category)
+      : [...currentFilters, category];
+    table
+      .getColumn("category")
+      ?.setFilterValue(newFilters.length ? newFilters : undefined);
+  };
 
   return (
     <div className="w-full">
       <div className="flex items-center gap-4 py-4">
-        <Input
-          placeholder="筛选任务类别..."
-          value={
-            (table.getColumn("category")?.getFilterValue() as string) ?? ""
-          }
-          onChange={(event) =>
-            table.getColumn("category")?.setFilterValue(event.target.value)
-          }
-          className="max-w-sm"
-        />
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline">
+              筛选任务类别
+              {selectedCategories.length > 0 && (
+                <Badge
+                  variant="secondary"
+                  className="ml-2 bg-blue-500 text-white"
+                >
+                  {selectedCategories.length}
+                </Badge>
+              )}
+              <ChevronDown className="ml-2 h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="w-56">
+            {categories.map((category) => (
+              <DropdownMenuCheckboxItem
+                key={category}
+                checked={isCategorySelected(category)}
+                onCheckedChange={() => toggleCategory(category)}
+              >
+                {category}
+              </DropdownMenuCheckboxItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto">
@@ -326,7 +344,7 @@ export function ProjectsTable({ projects }: ProjectsTableProps) {
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead key={header.id}>
+                    <TableHead key={header.id} className="h-14">
                       {header.isPlaceholder
                         ? null
                         : flexRender(
@@ -342,12 +360,9 @@ export function ProjectsTable({ projects }: ProjectsTableProps) {
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
+                <TableRow key={row.id}>
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell key={cell.id} className="py-4">
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext(),
@@ -371,8 +386,7 @@ export function ProjectsTable({ projects }: ProjectsTableProps) {
       </div>
       <div className="flex items-center justify-end space-x-2 py-4">
         <div className="text-muted-foreground flex-1 text-sm">
-          已选择 {table.getFilteredSelectedRowModel().rows.length} /{" "}
-          {table.getFilteredRowModel().rows.length} 行
+          共 {table.getFilteredRowModel().rows.length} 条记录
         </div>
         <div className="space-x-2">
           <Button

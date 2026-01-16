@@ -4,7 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { zhCN } from "date-fns/locale";
-import { CalendarIcon, Plus, Trash2 } from "lucide-react";
+import { CalendarIcon, Pencil, Plus, Trash2 } from "lucide-react";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -72,6 +72,9 @@ export default function ProjectsPage() {
   const [projectToDelete, setProjectToDelete] = React.useState<string | null>(
     null,
   );
+  const [editingProject, setEditingProject] = React.useState<Project | null>(
+    null,
+  );
   const [formData, setFormData] = React.useState({
     name: "",
     description: "",
@@ -83,23 +86,43 @@ export default function ProjectsPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    const newProject: Project = {
-      id: Date.now().toString(),
-      name: formData.name,
-      description: formData.description,
-      status: formData.status,
-      priority: formData.priority,
-      category: formData.category,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      dueDate: date,
-      files: [],
-      milestones: [],
-    };
+    if (editingProject) {
+      // Update existing project
+      const updatedProject: Project = {
+        ...editingProject,
+        name: formData.name,
+        description: formData.description,
+        status: formData.status,
+        priority: formData.priority,
+        category: formData.category,
+        updatedAt: new Date(),
+        dueDate: date,
+      };
 
-    setProjects([...projects, newProject]);
+      setProjects(
+        projects.map((p) => (p.id === editingProject.id ? updatedProject : p)),
+      );
+    } else {
+      // Create new project
+      const newProject: Project = {
+        id: Date.now().toString(),
+        name: formData.name,
+        description: formData.description,
+        status: formData.status,
+        priority: formData.priority,
+        category: formData.category,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        dueDate: date,
+        files: [],
+        milestones: [],
+      };
+
+      setProjects([...projects, newProject]);
+    }
+
     setOpen(false);
-
+    setEditingProject(null);
     setFormData({
       name: "",
       description: "",
@@ -108,6 +131,20 @@ export default function ProjectsPage() {
       category: "其他",
     });
     setDate(undefined);
+  };
+
+  const handleEditClick = (project: Project, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingProject(project);
+    setFormData({
+      name: project.name,
+      description: project.description,
+      status: project.status,
+      priority: project.priority,
+      category: project.category,
+    });
+    setDate(project.dueDate);
+    setOpen(true);
   };
 
   const handleDeleteClick = (projectId: string, e: React.MouseEvent) => {
@@ -121,6 +158,22 @@ export default function ProjectsPage() {
       setProjects(projects.filter((p) => p.id !== projectToDelete));
       setProjectToDelete(null);
       setDeleteDialogOpen(false);
+    }
+  };
+
+  const handleDialogClose = (isOpen: boolean) => {
+    setOpen(isOpen);
+    if (!isOpen) {
+      // Reset form when dialog closes
+      setEditingProject(null);
+      setFormData({
+        name: "",
+        description: "",
+        status: "待处理",
+        priority: "中",
+        category: "其他",
+      });
+      setDate(undefined);
     }
   };
 
@@ -155,7 +208,7 @@ export default function ProjectsPage() {
               创建项目、设置里程碑、管理项目文件
             </p>
           </div>
-          <Dialog open={open} onOpenChange={setOpen}>
+          <Dialog open={open} onOpenChange={handleDialogClose}>
             <DialogTrigger asChild>
               <Button>
                 <Plus className="mr-2 h-4 w-4" />
@@ -165,9 +218,13 @@ export default function ProjectsPage() {
             <DialogContent className="sm:max-w-131.25">
               <form onSubmit={handleSubmit}>
                 <DialogHeader>
-                  <DialogTitle>创建新项目</DialogTitle>
+                  <DialogTitle>
+                    {editingProject ? "编辑项目" : "创建新项目"}
+                  </DialogTitle>
                   <DialogDescription>
-                    填写项目信息以创建新项目
+                    {editingProject
+                      ? "修改项目信息"
+                      : "填写项目信息以创建新项目"}
                   </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
@@ -299,7 +356,9 @@ export default function ProjectsPage() {
                   </div>
                 </div>
                 <DialogFooter>
-                  <Button type="submit">创建项目</Button>
+                  <Button type="submit">
+                    {editingProject ? "保存修改" : "创建项目"}
+                  </Button>
                 </DialogFooter>
               </form>
             </DialogContent>
@@ -332,6 +391,14 @@ export default function ProjectsPage() {
                         {new Date(project.dueDate).toLocaleDateString("zh-CN")}
                       </span>
                     )}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 hover:bg-blue-100 hover:text-blue-600 dark:hover:bg-blue-900/30"
+                      onClick={(e) => handleEditClick(project, e)}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
                     <Button
                       variant="ghost"
                       size="icon"
