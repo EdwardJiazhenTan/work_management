@@ -25,6 +25,8 @@ import {
 import {
   ChartConfig,
   ChartContainer,
+  ChartLegend,
+  ChartLegendContent,
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
@@ -39,11 +41,15 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
+  Cell,
   Legend,
   Line,
   LineChart,
   Pie,
   PieChart,
+  PolarAngleAxis,
+  RadialBar,
+  RadialBarChart,
   XAxis,
   YAxis,
   Sector,
@@ -59,15 +65,31 @@ const monthlyData = [
   { month: "4月", 新增: 18, 完成: 15 },
   { month: "5月", 新增: 14, 完成: 16 },
   { month: "6月", 新增: 16, 完成: 14 },
+  { month: "7月", 新增: 13, 完成: 15 },
+  { month: "8月", 新增: 17, 完成: 13 },
+  { month: "9月", 新增: 19, 完成: 16 },
+  { month: "10月", 新增: 14, 完成: 18 },
+  { month: "11月", 新增: 16, 完成: 15 },
+  { month: "12月", 新增: 15, 完成: 17 },
 ];
 
 const weeklyProgressData = [
-  { week: "第1周", 进度: 20 },
-  { week: "第2周", 进度: 35 },
-  { week: "第3周", 进度: 45 },
-  { week: "第4周", 进度: 60 },
-  { week: "第5周", 进度: 75 },
-  { week: "第6周", 进度: 85 },
+  { week: "第1周", 进度: 15 },
+  { week: "第2周", 进度: 22 },
+  { week: "第3周", 进度: 28 },
+  { week: "第4周", 进度: 35 },
+  { week: "第5周", 进度: 42 },
+  { week: "第6周", 进度: 48 },
+  { week: "第7周", 进度: 55 },
+  { week: "第8周", 进度: 60 },
+  { week: "第9周", 进度: 65 },
+  { week: "第10周", 进度: 70 },
+  { week: "第11周", 进度: 75 },
+  { week: "第12周", 进度: 80 },
+  { week: "第13周", 进度: 83 },
+  { week: "第14周", 进度: 86 },
+  { week: "第15周", 进度: 89 },
+  { week: "第16周", 进度: 92 },
 ];
 
 const chartConfig = {
@@ -82,6 +104,50 @@ const chartConfig = {
   进度: {
     label: "完成进度",
     color: "#3b82f6",
+  },
+  经营管理: {
+    label: "经营管理",
+    color: "hsl(var(--chart-1))",
+  },
+  资产管理: {
+    label: "资产管理",
+    color: "hsl(var(--chart-2))",
+  },
+  议案管理: {
+    label: "议案管理",
+    color: "hsl(var(--chart-3))",
+  },
+  工商管理: {
+    label: "工商管理",
+    color: "hsl(var(--chart-4))",
+  },
+  非工程类采购管理: {
+    label: "非工程类采购管理",
+    color: "hsl(var(--chart-5))",
+  },
+  保险采购管理: {
+    label: "保险采购管理",
+    color: "hsl(var(--chart-1))",
+  },
+  法务管理: {
+    label: "法务管理",
+    color: "hsl(var(--chart-2))",
+  },
+  其他: {
+    label: "其他",
+    color: "hsl(var(--chart-3))",
+  },
+  待处理: {
+    label: "待处理",
+    color: "hsl(220 13% 69%)",
+  },
+  进行中: {
+    label: "进行中",
+    color: "hsl(217 91% 60%)",
+  },
+  已完成: {
+    label: "已完成",
+    color: "hsl(215 20% 47%)",
   },
 } satisfies ChartConfig;
 
@@ -151,11 +217,29 @@ export default function AnalyticsPage() {
     });
 
     return [
-      { name: "待处理", value: statusCounts.待处理, fill: "#94a3b8" },
-      { name: "进行中", value: statusCounts.进行中, fill: "#60a5fa" },
-      { name: "已完成", value: statusCounts.已完成, fill: "#475569" },
+      {
+        name: "待处理",
+        value: statusCounts.待处理,
+        fill: "var(--color-待处理)",
+      },
+      {
+        name: "进行中",
+        value: statusCounts.进行中,
+        fill: "var(--color-进行中)",
+      },
+      {
+        name: "已完成",
+        value: statusCounts.已完成,
+        fill: "var(--color-已完成)",
+      },
     ];
   }, [filteredProjects]);
+
+  type StatusData = {
+    name: string;
+    value: number;
+    fill: string;
+  };
 
   // Calculate priority distribution based on filtered projects
   const projectPriorityData = React.useMemo(() => {
@@ -174,6 +258,55 @@ export default function AnalyticsPage() {
       { name: "中", value: priorityCounts.中, fill: "#3b82f6" },
       { name: "低", value: priorityCounts.低, fill: "#cbd5e1" },
     ];
+  }, [filteredProjects]);
+
+  // Calculate category distribution for radial chart
+  const projectCategoryData = React.useMemo(() => {
+    const categoryCounts: Record<string, number> = {
+      经营管理: 0,
+      资产管理: 0,
+      议案管理: 0,
+      工商管理: 0,
+      非工程类采购管理: 0,
+      保险采购管理: 0,
+      法务管理: 0,
+      其他: 0,
+    };
+
+    filteredProjects.forEach((project) => {
+      categoryCounts[project.category]++;
+    });
+
+    const categoryColors: Record<string, string> = {
+      经营管理: "#3b82f6",
+      资产管理: "#60a5fa",
+      议案管理: "#1d4ed8",
+      工商管理: "#06b6d4",
+      非工程类采购管理: "#0ea5e9",
+      保险采购管理: "#6366f1",
+      法务管理: "#1e40af",
+      其他: "#94a3b8",
+    };
+
+    const totalCategories = Object.values(categoryCounts).reduce(
+      (a, b) => a + b,
+      0,
+    );
+
+    // Find max value for proper scaling
+    const maxValue = Math.max(...Object.values(categoryCounts));
+
+    return Object.entries(categoryCounts)
+      .map(([name, value]) => ({
+        name,
+        value,
+        fill: categoryColors[name],
+        percentage:
+          totalCategories > 0
+            ? ((value / totalCategories) * 100).toFixed(1)
+            : 0,
+      }))
+      .filter((item) => item.value > 0);
   }, [filteredProjects]);
 
   const total = React.useMemo(() => {
@@ -263,6 +396,84 @@ export default function AnalyticsPage() {
         <div className="grid gap-4 md:grid-cols-2">
           <Card>
             <CardHeader>
+              <CardTitle>项目类别分布</CardTitle>
+              <CardDescription>
+                各类别项目数量统计
+                {dateRange?.from && (
+                  <span className="ml-1">
+                    (
+                    {dateRange.to
+                      ? `${format(dateRange.from, "yyyy/MM/dd")} - ${format(dateRange.to, "yyyy/MM/dd")}`
+                      : format(dateRange.from, "yyyy/MM/dd")}
+                    )
+                  </span>
+                )}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {filteredProjects.length === 0 ? (
+                <div className="flex h-[350px] items-center justify-center text-muted-foreground">
+                  <p>所选日期范围内暂无项目数据</p>
+                </div>
+              ) : (
+                <ChartContainer config={chartConfig} className="h-[350px]">
+                  <RadialBarChart
+                    data={projectCategoryData}
+                    innerRadius="20%"
+                    outerRadius="90%"
+                    startAngle={90}
+                    endAngle={-270}
+                  >
+                    <PolarAngleAxis
+                      type="number"
+                      domain={[
+                        0,
+                        Math.max(...projectCategoryData.map((d) => d.value)),
+                      ]}
+                      angleAxisId={0}
+                      tick={false}
+                    />
+                    <ChartTooltip
+                      content={({ active, payload }) => {
+                        if (active && payload && payload.length) {
+                          return (
+                            <div className="rounded-lg border bg-background p-2 shadow-sm">
+                              <div className="flex flex-col gap-1">
+                                <span className="text-sm font-medium">
+                                  {payload[0].payload.name}
+                                </span>
+                                <span className="text-sm text-muted-foreground">
+                                  数量: {payload[0].payload.value}
+                                </span>
+                                <span className="text-sm text-muted-foreground">
+                                  占比: {payload[0].payload.percentage}%
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
+                    />
+                    <RadialBar
+                      dataKey="value"
+                      cornerRadius={4}
+                      label={{
+                        position: "insideStart",
+                        fill: "#fff",
+                        fontSize: 12,
+                        formatter: (value: string, entry: { name?: string }) =>
+                          entry?.name || "",
+                      }}
+                    />
+                  </RadialBarChart>
+                </ChartContainer>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
               <CardTitle>项目状态分布</CardTitle>
               <CardDescription>
                 各状态项目数量统计
@@ -277,95 +488,51 @@ export default function AnalyticsPage() {
                 )}
               </CardDescription>
             </CardHeader>
-            <CardContent className="flex flex-col">
-              {total === 0 ? (
-                <div className="flex h-[300px] items-center justify-center text-muted-foreground">
-                  <p>所选日期范围内暂无项目数据</p>
-                </div>
-              ) : (
-                <>
-                  <ChartContainer
-                    config={chartConfig}
-                    className="mx-auto aspect-square max-h-62.5"
-                  >
-                    <PieChart>
-                      <ChartTooltip
-                        cursor={false}
-                        content={<ChartTooltipContent hideLabel />}
-                      />
-                      <Pie
-                        data={projectStatusData}
-                        cx="50%"
-                        cy="50%"
-                        dataKey="value"
-                        nameKey="name"
-                        innerRadius={60}
-                        outerRadius={80}
-                        paddingAngle={5}
-                        activeIndex={activeIndex}
-                        activeShape={renderActiveShape}
-                        onMouseEnter={(_, index) => setActiveIndex(index)}
-                        onMouseLeave={() => setActiveIndex(0)}
-                      />
-                    </PieChart>
-                  </ChartContainer>
-                  <div className="mt-4 flex flex-col gap-2">
-                    {projectStatusData.map((item) => (
-                      <div
-                        key={item.name}
-                        className="flex items-center justify-between text-sm"
-                      >
-                        <div className="flex items-center gap-2">
-                          <div
-                            className="h-3 w-3 rounded-sm"
-                            style={{ backgroundColor: item.fill }}
-                          />
-                          <span>{item.name}</span>
-                        </div>
-                        <span className="font-medium">
-                          {item.value} (
-                          {total > 0
-                            ? ((item.value / total) * 100).toFixed(0)
-                            : 0}
-                          %)
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>优先级分布</CardTitle>
-              <CardDescription>
-                项目优先级统计
-                {dateRange?.from && (
-                  <span className="ml-1">
-                    (
-                    {dateRange.to
-                      ? `${format(dateRange.from, "yyyy/MM/dd")} - ${format(dateRange.to, "yyyy/MM/dd")}`
-                      : format(dateRange.from, "yyyy/MM/dd")}
-                    )
-                  </span>
-                )}
-              </CardDescription>
-            </CardHeader>
             <CardContent>
-              {filteredProjects.length === 0 ? (
-                <div className="flex h-[300px] items-center justify-center text-muted-foreground">
+              {total === 0 ? (
+                <div className="flex h-[350px] items-center justify-center text-muted-foreground">
                   <p>所选日期范围内暂无项目数据</p>
                 </div>
               ) : (
-                <ChartContainer config={chartConfig} className="h-[300px]">
-                  <BarChart data={projectPriorityData}>
+                <ChartContainer config={chartConfig} className="h-[350px]">
+                  <BarChart data={projectStatusData} layout="vertical">
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Bar dataKey="value" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                    <XAxis type="number" allowDecimals={false} />
+                    <YAxis dataKey="name" type="category" width={80} />
+                    <ChartTooltip
+                      content={({ active, payload }) => {
+                        if (active && payload && payload.length) {
+                          const value = payload[0].value as number;
+                          const percentage =
+                            total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                          return (
+                            <div className="rounded-lg border bg-background p-2 shadow-sm">
+                              <div className="flex flex-col gap-1">
+                                <span className="text-sm font-medium">
+                                  {payload[0].payload.name}
+                                </span>
+                                <span className="text-sm text-muted-foreground">
+                                  数量: {value}
+                                </span>
+                                <span className="text-sm text-muted-foreground">
+                                  占比: {percentage}%
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
+                    />
+                    <ChartLegend
+                      content={<ChartLegendContent nameKey="name" />}
+                      className="mt-4"
+                    />
+                    <Bar dataKey="value" radius={[0, 4, 4, 0]}>
+                      {projectStatusData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.fill} />
+                      ))}
+                    </Bar>
                   </BarChart>
                 </ChartContainer>
               )}
