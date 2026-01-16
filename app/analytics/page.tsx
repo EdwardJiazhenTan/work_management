@@ -306,7 +306,8 @@ export default function AnalyticsPage() {
             ? ((value / totalCategories) * 100).toFixed(1)
             : 0,
       }))
-      .filter((item) => item.value > 0);
+      .filter((item) => item.value > 0)
+      .sort((a, b) => b.value - a.value);
   }, [filteredProjects]);
 
   const total = React.useMemo(() => {
@@ -417,22 +418,10 @@ export default function AnalyticsPage() {
                 </div>
               ) : (
                 <ChartContainer config={chartConfig} className="h-[350px]">
-                  <RadialBarChart
-                    data={projectCategoryData}
-                    innerRadius="20%"
-                    outerRadius="90%"
-                    startAngle={90}
-                    endAngle={-270}
-                  >
-                    <PolarAngleAxis
-                      type="number"
-                      domain={[
-                        0,
-                        Math.max(...projectCategoryData.map((d) => d.value)),
-                      ]}
-                      angleAxisId={0}
-                      tick={false}
-                    />
+                  <BarChart data={projectCategoryData} layout="vertical">
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis type="number" allowDecimals={false} />
+                    <YAxis dataKey="name" type="category" width={120} />
                     <ChartTooltip
                       content={({ active, payload }) => {
                         if (active && payload && payload.length) {
@@ -455,18 +444,16 @@ export default function AnalyticsPage() {
                         return null;
                       }}
                     />
-                    <RadialBar
-                      dataKey="value"
-                      cornerRadius={4}
-                      label={{
-                        position: "insideStart",
-                        fill: "#fff",
-                        fontSize: 12,
-                        formatter: (value: string, entry: { name?: string }) =>
-                          entry?.name || "",
-                      }}
+                    <ChartLegend
+                      content={<ChartLegendContent nameKey="name" />}
+                      className="mt-4"
                     />
-                  </RadialBarChart>
+                    <Bar dataKey="value" radius={[0, 4, 4, 0]}>
+                      {projectCategoryData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.fill} />
+                      ))}
+                    </Bar>
+                  </BarChart>
                 </ChartContainer>
               )}
             </CardContent>
