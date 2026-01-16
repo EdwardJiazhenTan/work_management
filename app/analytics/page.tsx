@@ -533,7 +533,7 @@ export default function AnalyticsPage() {
             </CardHeader>
             <CardContent>
               <ChartContainer config={chartConfig} className="w-full h-[300px]">
-                <LineChart data={weeklyProgressData} width="100%">
+                <LineChart data={weeklyProgressData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="week" />
                   <YAxis />
@@ -557,7 +557,7 @@ export default function AnalyticsPage() {
             </CardHeader>
             <CardContent>
               <ChartContainer config={chartConfig} className="w-full h-[300px]">
-                <BarChart data={monthlyData} width="100%">
+                <BarChart data={monthlyData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="month" />
                   <YAxis />
