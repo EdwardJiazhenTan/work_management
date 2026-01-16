@@ -1,6 +1,9 @@
 "use client";
 
 import * as React from "react";
+import { format } from "date-fns";
+import { zhCN } from "date-fns/locale";
+import { CalendarIcon, X } from "lucide-react";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -25,6 +28,13 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Bar,
   BarChart,
@@ -38,18 +48,9 @@ import {
   YAxis,
   Sector,
 } from "recharts";
-
-const projectStatusData = [
-  { name: "待处理", value: 3, fill: "#94a3b8" },
-  { name: "进行中", value: 3, fill: "#60a5fa" },
-  { name: "已完成", value: 2, fill: "#475569" },
-];
-
-const projectPriorityData = [
-  { name: "高", value: 4, fill: "#64748b" },
-  { name: "中", value: 3, fill: "#3b82f6" },
-  { name: "低", value: 1, fill: "#cbd5e1" },
-];
+import { mockProjects } from "@/lib/mock-data";
+import { cn } from "@/lib/utils";
+import type { DateRange } from "react-day-picker";
 
 const monthlyData = [
   { month: "1月", 新增: 12, 完成: 8 },
@@ -113,10 +114,71 @@ const renderActiveShape = (props: unknown) => {
 
 export default function AnalyticsPage() {
   const [activeIndex, setActiveIndex] = React.useState<number | undefined>(0);
+  const [dateRange, setDateRange] = React.useState<DateRange | undefined>();
+
+  // Filter projects based on date range
+  const filteredProjects = React.useMemo(() => {
+    if (!dateRange?.from) {
+      return mockProjects;
+    }
+
+    return mockProjects.filter((project) => {
+      const projectDate = new Date(project.createdAt);
+      const fromDate = new Date(dateRange.from!);
+      const toDate = dateRange.to
+        ? new Date(dateRange.to)
+        : new Date(dateRange.from!);
+
+      // Set time to start of day for comparison
+      projectDate.setHours(0, 0, 0, 0);
+      fromDate.setHours(0, 0, 0, 0);
+      toDate.setHours(23, 59, 59, 999);
+
+      return projectDate >= fromDate && projectDate <= toDate;
+    });
+  }, [dateRange]);
+
+  // Calculate status distribution based on filtered projects
+  const projectStatusData = React.useMemo(() => {
+    const statusCounts = {
+      待处理: 0,
+      进行中: 0,
+      已完成: 0,
+    };
+
+    filteredProjects.forEach((project) => {
+      statusCounts[project.status]++;
+    });
+
+    return [
+      { name: "待处理", value: statusCounts.待处理, fill: "#94a3b8" },
+      { name: "进行中", value: statusCounts.进行中, fill: "#60a5fa" },
+      { name: "已完成", value: statusCounts.已完成, fill: "#475569" },
+    ];
+  }, [filteredProjects]);
+
+  // Calculate priority distribution based on filtered projects
+  const projectPriorityData = React.useMemo(() => {
+    const priorityCounts = {
+      高: 0,
+      中: 0,
+      低: 0,
+    };
+
+    filteredProjects.forEach((project) => {
+      priorityCounts[project.priority]++;
+    });
+
+    return [
+      { name: "高", value: priorityCounts.高, fill: "#64748b" },
+      { name: "中", value: priorityCounts.中, fill: "#3b82f6" },
+      { name: "低", value: priorityCounts.低, fill: "#cbd5e1" },
+    ];
+  }, [filteredProjects]);
 
   const total = React.useMemo(() => {
     return projectStatusData.reduce((acc, curr) => acc + curr.value, 0);
-  }, []);
+  }, [projectStatusData]);
 
   return (
     <SidebarInset>
@@ -142,74 +204,194 @@ export default function AnalyticsPage() {
         <ThemeToggle />
       </header>
       <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-semibold">数据分析</h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              项目数据统计与趋势分析
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-[300px] justify-start text-left font-normal",
+                    !dateRange && "text-muted-foreground",
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {dateRange?.from ? (
+                    dateRange.to ? (
+                      <>
+                        {format(dateRange.from, "PPP", { locale: zhCN })} -{" "}
+                        {format(dateRange.to, "PPP", { locale: zhCN })}
+                      </>
+                    ) : (
+                      format(dateRange.from, "PPP", { locale: zhCN })
+                    )
+                  ) : (
+                    <span>选择日期范围</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="end">
+                <Calendar
+                  initialFocus
+                  mode="range"
+                  defaultMonth={dateRange?.from}
+                  selected={dateRange}
+                  onSelect={setDateRange}
+                  numberOfMonths={2}
+                  locale={zhCN}
+                />
+              </PopoverContent>
+            </Popover>
+            {dateRange && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setDateRange(undefined)}
+                className="h-10 w-10"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+        </div>
         <div className="grid gap-4 md:grid-cols-2">
           <Card>
             <CardHeader>
               <CardTitle>项目状态分布</CardTitle>
-              <CardDescription>各状态项目数量统计</CardDescription>
+              <CardDescription>
+                各状态项目数量统计
+                {dateRange?.from && (
+                  <span className="ml-1">
+                    (
+                    {dateRange.to
+                      ? `${format(dateRange.from, "yyyy/MM/dd")} - ${format(dateRange.to, "yyyy/MM/dd")}`
+                      : format(dateRange.from, "yyyy/MM/dd")}
+                    )
+                  </span>
+                )}
+              </CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col">
-              <ChartContainer
-                config={chartConfig}
-                className="mx-auto aspect-square max-h-62.5"
-              >
-                <PieChart>
-                  <ChartTooltip
-                    cursor={false}
-                    content={<ChartTooltipContent hideLabel />}
-                  />
-                  <Pie
-                    data={projectStatusData}
-                    cx="50%"
-                    cy="50%"
-                    dataKey="value"
-                    nameKey="name"
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={5}
-                    activeIndex={activeIndex}
-                    activeShape={renderActiveShape}
-                    onMouseEnter={(_, index) => setActiveIndex(index)}
-                    onMouseLeave={() => setActiveIndex(0)}
-                  />
-                </PieChart>
-              </ChartContainer>
-              <div className="mt-4 flex flex-col gap-2">
-                {projectStatusData.map((item) => (
-                  <div
-                    key={item.name}
-                    className="flex items-center justify-between text-sm"
+              {total === 0 ? (
+                <div className="flex h-[300px] items-center justify-center text-muted-foreground">
+                  <p>所选日期范围内暂无项目数据</p>
+                </div>
+              ) : (
+                <>
+                  <ChartContainer
+                    config={chartConfig}
+                    className="mx-auto aspect-square max-h-62.5"
                   >
-                    <div className="flex items-center gap-2">
-                      <div
-                        className="h-3 w-3 rounded-sm"
-                        style={{ backgroundColor: item.fill }}
+                    <PieChart>
+                      <ChartTooltip
+                        cursor={false}
+                        content={<ChartTooltipContent hideLabel />}
                       />
-                      <span>{item.name}</span>
-                    </div>
-                    <span className="font-medium">
-                      {item.value} ({((item.value / total) * 100).toFixed(0)}%)
-                    </span>
+                      <Pie
+                        data={projectStatusData}
+                        cx="50%"
+                        cy="50%"
+                        dataKey="value"
+                        nameKey="name"
+                        innerRadius={60}
+                        outerRadius={80}
+                        paddingAngle={5}
+                        activeIndex={activeIndex}
+                        activeShape={renderActiveShape}
+                        onMouseEnter={(_, index) => setActiveIndex(index)}
+                        onMouseLeave={() => setActiveIndex(0)}
+                      />
+                    </PieChart>
+                  </ChartContainer>
+                  <div className="mt-4 flex flex-col gap-2">
+                    {projectStatusData.map((item) => (
+                      <div
+                        key={item.name}
+                        className="flex items-center justify-between text-sm"
+                      >
+                        <div className="flex items-center gap-2">
+                          <div
+                            className="h-3 w-3 rounded-sm"
+                            style={{ backgroundColor: item.fill }}
+                          />
+                          <span>{item.name}</span>
+                        </div>
+                        <span className="font-medium">
+                          {item.value} (
+                          {total > 0
+                            ? ((item.value / total) * 100).toFixed(0)
+                            : 0}
+                          %)
+                        </span>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+                </>
+              )}
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
               <CardTitle>优先级分布</CardTitle>
-              <CardDescription>项目优先级统计</CardDescription>
+              <CardDescription>
+                项目优先级统计
+                {dateRange?.from && (
+                  <span className="ml-1">
+                    (
+                    {dateRange.to
+                      ? `${format(dateRange.from, "yyyy/MM/dd")} - ${format(dateRange.to, "yyyy/MM/dd")}`
+                      : format(dateRange.from, "yyyy/MM/dd")}
+                    )
+                  </span>
+                )}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {filteredProjects.length === 0 ? (
+                <div className="flex h-[300px] items-center justify-center text-muted-foreground">
+                  <p>所选日期范围内暂无项目数据</p>
+                </div>
+              ) : (
+                <ChartContainer config={chartConfig} className="h-[300px]">
+                  <BarChart data={projectPriorityData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <ChartTooltip content={<ChartTooltipContent />} />
+                    <Bar dataKey="value" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ChartContainer>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="md:col-span-2">
+            <CardHeader>
+              <CardTitle>周进度趋势</CardTitle>
+              <CardDescription>项目完成进度变化</CardDescription>
             </CardHeader>
             <CardContent>
               <ChartContainer config={chartConfig} className="h-[300px]">
-                <BarChart data={projectPriorityData}>
+                <LineChart data={weeklyProgressData}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
+                  <XAxis dataKey="week" />
                   <YAxis />
                   <ChartTooltip content={<ChartTooltipContent />} />
-                  <Bar dataKey="value" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-                </BarChart>
+                  <Legend />
+                  <Line
+                    type="monotone"
+                    dataKey="进度"
+                    stroke="var(--color-进度)"
+                    strokeWidth={2}
+                  />
+                </LineChart>
               </ChartContainer>
             </CardContent>
           </Card>
@@ -238,30 +420,6 @@ export default function AnalyticsPage() {
                     radius={[4, 4, 0, 0]}
                   />
                 </BarChart>
-              </ChartContainer>
-            </CardContent>
-          </Card>
-
-          <Card className="md:col-span-2">
-            <CardHeader>
-              <CardTitle>周进度趋势</CardTitle>
-              <CardDescription>项目完成进度变化</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ChartContainer config={chartConfig} className="h-[300px]">
-                <LineChart data={weeklyProgressData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="week" />
-                  <YAxis />
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <Legend />
-                  <Line
-                    type="monotone"
-                    dataKey="进度"
-                    stroke="var(--color-进度)"
-                    strokeWidth={2}
-                  />
-                </LineChart>
               </ChartContainer>
             </CardContent>
           </Card>

@@ -118,6 +118,7 @@ export function ProjectsTable({ projects }: ProjectsTableProps) {
           <Button
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            className="-ml-4"
           >
             项目名称
             <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -140,6 +141,7 @@ export function ProjectsTable({ projects }: ProjectsTableProps) {
           <Button
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            className="-ml-4"
           >
             任务类别
             <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -158,6 +160,7 @@ export function ProjectsTable({ projects }: ProjectsTableProps) {
           <Button
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            className="-ml-4"
           >
             状态
             <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -173,6 +176,7 @@ export function ProjectsTable({ projects }: ProjectsTableProps) {
           <Button
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            className="-ml-4"
           >
             优先级
             <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -200,6 +204,7 @@ export function ProjectsTable({ projects }: ProjectsTableProps) {
           <Button
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            className="-ml-4"
           >
             创建时间
             <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -222,6 +227,7 @@ export function ProjectsTable({ projects }: ProjectsTableProps) {
           <Button
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            className="-ml-4"
           >
             截止日期
             <ArrowUpDown className="ml-2 h-4 w-4" />
