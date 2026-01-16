@@ -394,7 +394,7 @@ export default function AnalyticsPage() {
             )}
           </div>
         </div>
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
           <Card>
             <CardHeader>
               <CardTitle>项目类别分布</CardTitle>
@@ -526,14 +526,14 @@ export default function AnalyticsPage() {
             </CardContent>
           </Card>
 
-          <Card className="md:col-span-2">
+          <Card className="col-span-full">
             <CardHeader>
               <CardTitle>周进度趋势</CardTitle>
               <CardDescription>项目完成进度变化</CardDescription>
             </CardHeader>
             <CardContent>
-              <ChartContainer config={chartConfig} className="h-[300px]">
-                <LineChart data={weeklyProgressData}>
+              <ChartContainer config={chartConfig} className="w-full h-[300px]">
+                <LineChart data={weeklyProgressData} width="100%">
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="week" />
                   <YAxis />
@@ -550,14 +550,14 @@ export default function AnalyticsPage() {
             </CardContent>
           </Card>
 
-          <Card className="md:col-span-2">
+          <Card className="col-span-full">
             <CardHeader>
               <CardTitle>项目月度趋势</CardTitle>
               <CardDescription>新增与完成项目数量对比</CardDescription>
             </CardHeader>
             <CardContent>
-              <ChartContainer config={chartConfig} className="h-[300px]">
-                <BarChart data={monthlyData}>
+              <ChartContainer config={chartConfig} className="w-full h-[300px]">
+                <BarChart data={monthlyData} width="100%">
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="month" />
                   <YAxis />
